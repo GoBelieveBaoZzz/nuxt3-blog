@@ -1,7 +1,7 @@
 export default {
   /** -------------------------------------------------以下必须修改----------------------------------------------------- */
 
-  githubName: "yunyuyuan",                                     // 必须修改，github账户名
+  githubName: "GoBelieveBaoZzz",                                     // 必须修改，github账户名
 
 
 
@@ -18,7 +18,7 @@ export default {
   CommentDiscussionCategoryId: "",                             // https://giscus.app/zh-CN
 
   Comment: {                                                   // 是否开启评论，请先设置上面的 CommentRepoId 和 CommentDiscussionCategoryId
-    articles: true,                                            // “文章”是否开启评论
+    articles: false,                                            // “文章”是否开启评论
     records: false,                                            // “记录”是否开启评论
     knowledges: false                                          // “文化”是否开启评论
   },

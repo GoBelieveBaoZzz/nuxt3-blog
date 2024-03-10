@@ -1,33 +1,35 @@
 <script setup lang="tsx">
+// 导入所需的组件和工具函数
 import SvgIcon from "~/components/svg-icon.vue";
 import NuxtLink from "~/node_modules/nuxt/dist/app/components/nuxt-link";
 import UploadImage from "~/pages/manage/comps/upload-image.vue";
 import { rmLocalStorage, setLocalStorage, translateT, isAuthor, notify, translate, isDev, calcRocketUrl } from "~/utils/nuxt";
 import { GithubTokenKey, HeaderTabs } from "~/utils/common";
 
+// 定义和初始化一些响应式数据
 const pageLoading = useLoading();
 
-// 上传图片
 const showUploadImage = ref(false);
 const githubToken = useGithubToken();
 const encryptor = useEncryptor();
 const allPassed = computed(() => !!githubToken && encryptor.passwdCorrect.value);
-
 const activeRoute = computed(() => {
   return useRoute().path.replace(/^\/manage\//, "/");
 });
 const travel = computed(() => {
   return calcRocketUrl();
 });
-// mobile menu
 const isMobile = useIsMobile();
 const menuShow = ref<boolean>(false);
+
+// 监听 isMobile 的变化，用于控制菜单的显示和隐藏
 watch(isMobile, () => {
   setTimeout(() => {
     menuShow.value = false;
   });
 });
 
+// 渲染管理菜单的模板
 const ManageMenu = defineComponent({
   components: {
     // eslint-disable-next-line vue/no-unused-components
@@ -93,9 +95,10 @@ const ManageMenu = defineComponent({
   )
 });
 
-// 进入manage界面后，大概率会用到encrypt，所以这里先异步加载，尚未遇到bug
+// 进入 manage 界面后，大概率会用到 encrypt，所以这里先异步加载，尚未遇到 bug
 encryptor.init();
 
+// 处理用户输入和点击事件
 const inputToken = ref<string>(githubToken.value);
 // 随时和githubToken保持一致，因为只有正确的值才会被赋给githubToken
 watch(githubToken, (token) => {
@@ -106,14 +109,14 @@ const showModal = ref<boolean>(false);
 const checkingToken = ref<boolean>(false);
 
 const modalOk = () => {
-  // 密码不用判断，直接修改
+  // 不需要判断密码，直接修改
   encryptor.usePasswd.value = inputPwd.value;
-  // 未改变token
+  // 如果输入的token和当前的token相同，那么就不需要做任何改变
   if (inputToken.value === githubToken.value) {
     showModal.value = false;
     return;
   }
-  // 输入为空，则删除本地token
+  // 如果输入为空，并且当前有token，那么就删除本地的token
   if (!inputToken.value && !!githubToken.value) {
     notify({
       title: translate("token-deleted"),
@@ -124,9 +127,11 @@ const modalOk = () => {
     showModal.value = false;
     return;
   }
+  // 开始检查token
   checkingToken.value = true;
   isAuthor(inputToken.value)
     .then((res) => {
+      // 如果检查通过，那么就保存token，并关闭模态框
       notify({
         title: res ? translate("token-verified") : translate("token-unverified"),
         type: res ? "success" : "error",
@@ -138,6 +143,7 @@ const modalOk = () => {
       }
     })
     .catch((e) => {
+      // 如果出现错误，那么就显示错误信息
       notify({
         title: translate("error"),
         type: "error",
@@ -145,6 +151,7 @@ const modalOk = () => {
       });
     })
     .finally(() => {
+      // 不论成功还是失败，最后都要停止检查token
       checkingToken.value = false;
     });
 };

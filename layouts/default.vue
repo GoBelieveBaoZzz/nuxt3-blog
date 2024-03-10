@@ -1,10 +1,13 @@
 <script setup lang="tsx">
+
+// 导入所需的库和模块
 import type Headroom from "headroom.js";
 import NuxtLink from "~/node_modules/nuxt/dist/app/components/nuxt-link";
 import { inBrowser, isPrerender, calcRocketUrl, translateT, useHackKey } from "~/utils/nuxt";
 import { i18nLocales, githubRepoUrl, type I18nCode, HeaderTabs } from "~/utils/common";
 import config from "~/config";
 
+// 初始化一些变量和函数
 const hackKey = useHackKey();
 const { i18nCode, changeI18n } = useI18nCode();
 const { themeMode, toggleThemeMode } = useThemeMode();
@@ -15,7 +18,7 @@ const activeRoute = computed(() => {
 });
 const footerDomain = inBrowser ? window.location.hostname : "";
 
-// mobile menu
+// 移动菜单的相关设置
 const isMobile = useIsMobile();
 const menuShow = ref<boolean>(false);
 watch(isMobile, () => {
@@ -23,8 +26,9 @@ watch(isMobile, () => {
     menuShow.value = false;
   });
 });
+
+// 定义 LayoutMenu 组件
 const LayoutMenu = defineComponent({
-  // XXX why need?
   components: {
     "nuxt-link": NuxtLink
   },
@@ -48,25 +52,30 @@ const LayoutMenu = defineComponent({
     </div>
 });
 
+// 国际化相关设置
 const showI18n = ref<boolean>(false);
 const setLocale = (locale: I18nCode) => {
   changeI18n(locale);
   showI18n.value = false;
 };
 
+// 判断是否在关于页面
 const inAbout = computed(() => {
   return route.path.startsWith("/about");
 });
 
+// 计算编辑链接
 const openEdit = computed(() => {
   return calcRocketUrl();
 });
 
+// 切换主题模式的函数
 const toggleTheme = () => {
   toggleThemeMode();
   isFirst.value = false;
 };
 
+// 初始化 headroom.js
 let headroom: undefined | Headroom;
 const headerRef = ref();
 onMounted(async () => {
@@ -80,6 +89,7 @@ onBeforeUnmount(() => {
   headroom?.destroy();
 });
 
+// 密码加密相关设置
 const encryptor = useEncryptor();
 const showPwdModal = ref(false);
 const inputPwd = ref(encryptor.usePasswd.value);
@@ -89,18 +99,24 @@ const isFirst = ref(true);
 <template>
   <div id="default-layout" :class="{'in-about': inAbout}">
     <div v-if="!isPrerender" class="mode-bg" :class="[themeMode, {active: !isFirst}]" />
+    <!-- 头部 -->
     <nav id="header" ref="headerRef" class="flex w100">
       <del class="space-left" />
+      <!-- 移动端菜单按钮 -->
       <span class="mobile-menu-toggler" :class="{active: menuShow}" @click="menuShow = true">
         <svg-icon name="menu" />
       </span>
+      <!-- 电脑端菜单 -->
       <layout-menu v-show="!isMobile" />
+      <!-- 移动端菜单 -->
       <div v-show="isMobile">
         <common-dropdown v-model:show="menuShow" wrap-class="menu-dropdown">
           <layout-menu />
         </common-dropdown>
       </div>
+      <!-- 中间空白部分 -->
       <del class="stretch" />
+      <!-- 按钮组开始 -->
       <a class="i18n" @click="showI18n = true">
         <svg-icon name="i18n" />
         <common-dropdown v-model:show="showI18n">
@@ -151,17 +167,22 @@ const isFirst = ref(true);
       <nuxt-link class="about" :to="inAbout ? '/' : '/about'" :title="$t('about')">
         <img class="s100" src="/icon.png" :alt="$t('avatar')">
       </nuxt-link>
+      <!-- 按钮组结束 -->
     </nav>
+    <!-- 加载条 -->
     <span v-show="!!pageLoading.loadingState.value" class="loading" :style="{width: `${pageLoading.loadingState.value}%`}" />
+    <!-- 主体 -->
     <section id="body">
       <slot />
     </section>
+    <!-- 底部 -->
     <footer id="footer" class="flex w100">
       <div class="middle flexc">
         <span>Copyright (c) 2019-2024 <b><a target="_blank" :href="'https://github.com/'+config.githubName">{{ config.nickName }}</a> | {{ footerDomain }}</b></span>
         <span class="flex"><a class="rss" target="_blank" href="/sitemap.xml" title="rss">RSS <svg-icon name="rss" /></a>| Powered By <a class="nuxt" href="https://github.com/yunyuyuan/nuxt3-blog" target="_blank">nuxt3-blog</a></span>
       </div>
     </footer>
+    <!-- 密码输入弹窗 -->
     <common-modal v-model="showPwdModal" @confirm="encryptor.usePasswd.value = inputPwd;showPwdModal = false">
       <template #title>
         {{ $T('passwd') }}

@@ -1,12 +1,19 @@
 <script setup lang="ts">
+
+// 导入所需的工具函数和类型
 import { addScrollListener, rmScrollListener, type ArticleItem } from "~/utils/common";
 import { getLocalStorage, rmLocalStorage, setLocalStorage, initViewer, isPrerender, useContentPage, useComment, watchUntil, useCommonSEOTitle } from "~/utils/nuxt";
 
+// 使用useContentPage钩子函数获取文章内容和相关信息
 const { item, tabUrl, writeDate, menuItems, htmlContent, markdownRef, htmlInserted } = await useContentPage<ArticleItem>();
+// 设置SEO标题
 useCommonSEOTitle(computed(() => item.title), computed(() => item.tags));
+// 定义活动锚点引用
 const activeAnchor = ref<string>();
 
+// 获取菜单隐藏状态
 const hideMenu = ref(!!getLocalStorage("hideMenu"));
+// 监听菜单隐藏状态，如果隐藏则存储到本地，否则从本地移除
 watch(hideMenu, (hide) => {
   if (hide) {
     setLocalStorage("hideMenu", "true");
@@ -15,26 +22,31 @@ watch(hideMenu, (hide) => {
   }
 });
 
+// 定义监听锚点的函数
 const listenAnchor = () => {
   try {
+    // 获取所有标题链接
     const links = Array.from(markdownRef.value!.querySelectorAll<HTMLLinkElement>("h1>a, h2>a, h3>a, h4>a, h5>a, h6>a")).reverse();
     for (const link of links) {
+      // 如果链接在视口内，则设置为活动锚点
       if (link.getBoundingClientRect().y <= 52) {
         const hash = link.getAttribute("href");
         activeAnchor.value = menuItems.value.find(anchor => anchor.url === hash?.slice(1))?.url;
         return;
       }
     }
-    // 未找到
+    // 如果没有找到活动锚点，则设置为第一个菜单项
     activeAnchor.value = menuItems.value[0]?.url;
   } catch {}
 };
 
+// 如果不是预渲染，则在组件挂载后添加滚动监听
 if (!isPrerender) {
   onMounted(() => {
     const hash = useRoute().hash;
     nextTick(() => {
       if (hash) {
+        // 如果存在hash，则在html插入后滚动到对应位置
         watchUntil(htmlInserted, () => {
           window.scrollTo({
             top: document
@@ -43,18 +55,23 @@ if (!isPrerender) {
           });
         }, { immediate: true }, "boolean", "cancelAfterUntil");
       } else {
+        // 否则监听锚点
         listenAnchor();
       }
+      // 添加滚动监听
       addScrollListener(listenAnchor);
     });
   });
 }
 
+// 在组件卸载前移除滚动监听
 onBeforeUnmount(() => {
   rmScrollListener(listenAnchor);
 });
 
+// 使用useComment钩子函数获取评论和根元素
 const { root, hasComment } = useComment(tabUrl);
+// 初始化查看器
 initViewer(root);
 </script>
 

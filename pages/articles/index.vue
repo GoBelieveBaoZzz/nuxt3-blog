@@ -2,21 +2,27 @@
 import { type ArticleItem } from "~/utils/common";
 import { formatTime, literalTime, useHackKey, useListPage } from "~/utils/nuxt";
 
+// 定义页面元信息
 definePageMeta({
   alias: "/"
 });
 
+// 使用hackKey
 const hackKey = useHackKey();
+// 获取文章列表
 const articlesList = await useListPage<ArticleItem>();
 
+// 创建文章标签列表
 const articleTagList = new Set<string>();
 
+// 监听articlesList的变化，更新articleTagList
 watch(articlesList, () => {
   articlesList.forEach((item) => {
     item.tags.forEach(v => articleTagList.add(v));
   });
 }, { immediate: true });
 
+// 计算属性tags，获取路由参数中的tag
 const tags = computed<string[]>(() => {
   try {
     const tags = useRoute().query.tag as string;
@@ -26,12 +32,14 @@ const tags = computed<string[]>(() => {
   }
 });
 
+// 计算属性filteredList，根据tags过滤articlesList
 const filteredList = computed(() => {
   return articlesList.filter(item =>
     tags.value.every(tag => item.tags.includes(tag))
   );
 });
 
+// 切换标签的函数，如果标签已存在则移除，否则添加
 const toggleTags = (tag: string) => {
   const newTags = tags.value.slice();
   const searchIdx = newTags.indexOf(tag);
@@ -40,6 +48,7 @@ const toggleTags = (tag: string) => {
   } else {
     newTags.push(tag);
   }
+  // 更新路由参数
   navigateTo({ query: { tag: newTags.join(",") } }, { replace: true });
 };
 </script>
